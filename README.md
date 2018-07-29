@@ -1,7 +1,7 @@
 
 README
 ===========================
-本插件是运行于Domoticz上的，用来将AD8-DIN接入Domoticz系统的一个插件, AD8-DIN需要通过一个RS485转TCP的网关接入到局域网，并需要运行在TCP SERVER模式<br>
+本插件是运行于Domoticz上的，用来将AD8-DIN接入Domoticz系统的一个插件, AD8-DIN需要通过一个RS485转TCP的网关接入到局域网，网关需要运行在TCP SERVER模式<br>
 
 介绍:
 --------
