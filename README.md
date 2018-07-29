@@ -6,7 +6,7 @@ Plugin for one or more AD8-DIN 0-10V LED DIMMER which connects to a RS485-TCP ro
 
 Introduce:
 --------
-AD8-DIN is a LED Controller which can control 0-10V dimmable light with outputs 0-10V DC, it can be controlled with RS485 commands.<br>
+AD8-DIN is a LED Controller which can control 0-10V dimmable light by output 0-10V DC to LED STRIP, it can be controlled with RS485 commands.<br>
 USR-N520 is a RS485-TCP router, with these two devices connected and set up, users can control LED Lights from Domoticz by this plugin.<br>
 Designed for AD8-DIN and USR-N520 (Or other RS485 TO TCP Router, but not tested)<br>
 
