@@ -13,9 +13,12 @@ Designed for AD8-DIN and USR-N520 (Or other RS485 TO TCP Router, but not tested)
 
 Domoticz Plugin Options:
 --------
-IP Address: IP address of TCP SERVER on RS485-TCP router<br>
-Port: Port of TCP SERVER on RS485-TCP router<br>
-RS485 Addresses(Hex): RS485 addresses of AD8-DIN, seperated by , or | or space<br>
+##### IP Address:<br> 
+IP address of TCP SERVER on RS485-TCP router<br>
+##### Port: <br>
+Port of TCP SERVER on RS485-TCP router<br>
+##### RS485 Addresses(Hex): <br>
+RS485 addresses of AD8-DIN, seperated by , or | or space<br>
 
 
 Product Links:
