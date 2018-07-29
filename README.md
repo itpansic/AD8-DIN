@@ -1,7 +1,8 @@
 
 README
 ===========================
-本插件是运行于Domoticz上的，用来将AD8-DIN接入Domoticz系统的一个插件, AD8-DIN需要通过一个RS485转TCP的网关接入到局域网，网关需要运行在TCP SERVER模式<br>
+本插件使用Python编写，运行于Domoticz上，可以Domoticz中调节与AD8-DIN相连接的LED灯亮度, AD8-DIN需要通过一个RS485转TCP的网关接入到局域网，网关需要运行在TCP SERVER模式<br>
+Current version: 0.1
 
 介绍:
 --------
@@ -32,7 +33,8 @@ USR-N520 https://detail.tmall.com/item.htm?spm=a230r.1.14.8.1ce053fbsIcRiU&id=53
 <br><br><br>
 README
 ===========================
-a Domoticz Plugin for one or more AD8-DIN 0-10V LED DIMMER which connects to a RS485-TCP router (USR-N520) running on the TCP SERVER mode.<br>
+a Domoticz Python Plugin for one or more AD8-DIN 0-10V LED DIMMER which connects to a RS485-TCP router (USR-N520) running on the TCP SERVER mode.<br>
+Current version: 0.1
 
 
 Introduce:
