@@ -5,7 +5,7 @@
 #
 
 """
-<plugin key="AD8-DIN" name="AD8-DIN" author="itpansic" version="1.0.0" externallink="https://item.taobao.com/item.htm?id=554419257310&_u=t2dmg8j26111">
+<plugin key="AD8-DIN" name="AD8-DIN" author="itpansic" version="1.0.0" wikilink="https://github.com/itpansic/AD8-DIN" externallink="https://item.taobao.com/item.htm?id=554419257310&_u=t2dmg8j26111">
     <description>
         <h2>AD8-DIN 0-10V LED DIMMER</h2><br/>
         Plugin for one or more AD8-DIN 0-10V LED DIMMER which connects to a RS485-TCP router (Model Name:USR-N520) running on the TCP SERVER mode.
