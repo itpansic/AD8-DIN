@@ -611,7 +611,7 @@ class BasePlugin:
             levelNames = '不渐变|1档|2档|3档|4档|5档|6档|7档|8档|9档|10档|11档|12档|13档|14档|15档'
             optionsGradient = {'LevelActions': '|' * levelNames.count('|'),
                                 'LevelNames': levelNames,
-                                'LevelOffHidden': 'false',
+                                'LevelOffHidden': 'true',
                                 'SelectorStyle': '1'}
             # Check if images are in database
             if "LJCountDown" not in Images:
