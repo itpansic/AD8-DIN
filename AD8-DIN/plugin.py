@@ -44,7 +44,7 @@ import Domoticz
 # 查询的最少间隔时间
 minRefreshDuration = 9
 
-# LED控制器类，每个对象对应一个AD8-DIN 
+# LED控制器类，每个对象对应一个AD8-DIN
 class LedCtrl:
     # 是否连通
     online = False
@@ -56,13 +56,13 @@ class LedCtrl:
     address = None
 
     # 上个发送的命令是否是查询渐变时间
-    isLastNeedWaitCmdGetGradientDuration = False 
-    
+    isLastNeedWaitCmdGetGradientDuration = False
+
     def __init__(self, address):
         self.address = address
         self.dicDevice = {}
         self.dicDeviceGradientDuration = {}
-    
+
     # 查询本设备所有亮度信息，以及查询渐变时间
     def onQueryLight(self):
         arrayCmd = []
@@ -73,17 +73,17 @@ class LedCtrl:
                 # 加入到命令列表
                 arrayCmd.append(self.cmdGetBrightness(int(dicOptions['LJLightIndex'])))
         return arrayCmd
-        
+
     # 查询本设备渐变时间
     def onQueryGradientDuration(self):
         return self.cmdGetGradientDuration()
 
     def cmdGetBrightness(self, lightIndex):
-        #AE01A8F2EE 查询0x01的第8路亮度  
+        #AE01A8F2EE 查询0x01的第8路亮度
         return 'AE{0:0>2}A{1}F2EE'.format(self.address,int(lightIndex))
 
     def cmdGetGradientDuration(self):
-        #AE01C100EE 查询渐变时间 
+        #AE01C100EE 查询渐变时间
         return 'AE{0:0>2}C100EE'.format(self.address)
 
     def cmdSetGradientDuration(self, gradientDuration):
@@ -164,8 +164,8 @@ class LedCtrl:
                 UpdateDevice(Unit=unit, nValue=1, sValue=int(gradientDuration)*10)
                 return self.cmdSetGradientDuration(int(gradientDuration))
         return None
-    
- 
+
+
     def handleCmdReceived(self, dicCmd):
         recv = dicCmd['cmd']
 
@@ -195,7 +195,7 @@ class LedCtrl:
                 if device.Options['LJLightIndex'] == lightIndex and self.shouldDeviceUpdate(device):
                     UpdateDevice(Unit=unit, nValue=nValue, sValue=sValue)
                     break
-        
+
     # 是否应该更新设备
     def shouldDeviceUpdate(self, device):
         if not device: return False
@@ -204,7 +204,7 @@ class LedCtrl:
             return False
 
         timeLast = time.mktime(time.strptime(device.LastUpdate,"%Y-%m-%d %H:%M:%S"))
-        
+
         if device.TimedOut > 0 or (timeLast and time.time() - timeLast) > 7:
             # 离线后首次收到消息，或者7秒之前更新过，才把数据更新到系统
             return True
@@ -222,7 +222,7 @@ class LedCtrl:
         if self.online:
             self.online = False
             Domoticz.Log('Led Ctrl 0x{} offline now!'.format(self.address))
-            
+
         for unit, device in self.dicDevice.items():
             UpdateDevice(Unit=unit, nValue=device.nValue, sValue=device.sValue, TimedOut=1)
         for unit, device in self.dicDeviceGradientDuration.items():
@@ -234,9 +234,9 @@ class BasePlugin:
     lastRefreshTimestamp = time.time()
 
     conn = None
-    # 待发送的需要等待回复的命令，成员格式为:{"address":"XX", "cmd":"XXXXXXX", "type": "brightness", "timestamp": timestamp} 
+    # 待发送的需要等待回复的命令，成员格式为:{"address":"XX", "cmd":"XXXXXXX", "type": "brightness", "timestamp": timestamp}
     arrayCmdNeedWait = []
-    # 待发送的不需等待回复的命令，成员格式为:{"address":"XX", "cmd":"XXXXXXX", "type": "gradientDuration", "timestamp": timestamp} 
+    # 待发送的不需等待回复的命令，成员格式为:{"address":"XX", "cmd":"XXXXXXX", "type": "gradientDuration", "timestamp": timestamp}
     arrayCmd = []
     # 正在等待回应的命令
     dicCmdWaiting = None
@@ -257,7 +257,7 @@ class BasePlugin:
             Domoticz.Debugging(1)
         else:
             Domoticz.Debugging(0)
-        
+
         self.conn = Domoticz.Connection(Name="AD8-DIN", Transport="TCP/IP", Protocol="line",
                                         Address=Parameters['Address'],
                                         Port=Parameters["Port"])
@@ -284,18 +284,19 @@ class BasePlugin:
             Domoticz.Log("Connect Failed:" + Description)
             for ledCtrl in self.dicLedCtrl.values():
                 ledCtrl.offline()
-            
+
 
     def onMessage(self, Connection, Data):
         if Connection.Name != 'AD8-DIN': return
-            
+
         recv = Data.hex().upper()
-        
+
         Domoticz.Log('TCP/IP MESSAGE RECEIVED ' + recv)
 
         # 截取合法命令
         i = 16
         dicCmd = self.getCmdClip(recv)
+
         self.procDicCmd(dicCmd)
 
         dicCmd = self.getCmdClip()
@@ -303,11 +304,12 @@ class BasePlugin:
             self.procDicCmd(dicCmd)
             dicCmd = self.getCmdClip()
             i -= 1
-        
-        
-    
+
+
+
     # 处理收到的命令
     def procDicCmd(self, dicCmd):
+        Domoticz.Log('procDicCmd:   ' + str(dicCmd))
         if not dicCmd: return
         cmdWaiting = None
         cmdTypeWaiting = None
@@ -340,8 +342,8 @@ class BasePlugin:
             # 该地址对应的控制器处于下线状态，改为在线状态并发送查询各路亮度命令
             ledCtrl.online = True
             Domoticz.Log('Led Ctrl 0x{} online now!'.format(ledCtrl.address))
-            
-            
+
+
             array = ledCtrl.onQueryLight()
             cmdDuration = ledCtrl.onQueryGradientDuration()
 
@@ -363,7 +365,7 @@ class BasePlugin:
                 ledCtrlWaiting.handleCmdReceived(dicCmd)
                 self.dicCmdWaiting = None
                 self.sendNextCmd()
-            
+
 
     def onCommand(self, Unit, Command, Level, Hue):
         Domoticz.Log(
@@ -373,7 +375,7 @@ class BasePlugin:
         action = action.capitalize()
         params = params.capitalize()
         device = Devices[Unit]
-        if device.Options['LJAddress'] not in self.dicLedCtrl: 
+        if device.Options['LJAddress'] not in self.dicLedCtrl:
             return
         ledCtrl = self.dicLedCtrl[device.Options['LJAddress']]
         if not ledCtrl.online: return
@@ -384,7 +386,7 @@ class BasePlugin:
             if device.Options['LJLightIndex'] == '0':
                 # 渐变时间调节
                 if Level > 150: Level = 150
-                if Level <= 1: 
+                if Level <= 1:
                     # 关闭渐变
                     UpdateDevice(Unit=Unit, nValue=0, sValue='0')
                 else:
@@ -406,7 +408,7 @@ class BasePlugin:
             if device.Options['LJLightIndex'] == '0':
                 # 渐变时间调节
                 if Level > 150: Level = 150
-                if Level <= 1: 
+                if Level <= 1:
                     # 关闭渐变
                     UpdateDevice(Unit=Unit, nValue=0, sValue='0')
                 else:
@@ -417,7 +419,7 @@ class BasePlugin:
                 cmd = ledCtrl.onSetBrightness(Unit, Level)
                 if cmd:
                     self.goingToSendCmd(address=ledCtrl.address, cmd=cmd, type='brightness',needWaiting=False)
-            
+
 
     def onNotification(self, Name, Subject, Text, Status, Priority, Sound, ImageFile):
         Domoticz.Log("Notification: " + Name + "," + Subject + "," + Text + "," + Status + "," + str(
@@ -431,8 +433,9 @@ class BasePlugin:
 
     def onHeartbeat(self):
         Domoticz.Log('onHeartbeat Called ---------------------------------------')
-        # 如果没连接则尝试重新连接 
+        # 如果没连接则尝试重新连接
         if not self.conn.Connected():
+            Domoticz.Log('Not connected. Now connecting...')
             self.conn.Connect()
 
         # 清除超过20秒未发的需要等待回复的命令，并将对应控制器设置为不在线
@@ -441,22 +444,22 @@ class BasePlugin:
         for cmdObject in self.arrayCmdNeedWait:
             if nowTime - cmdObject['timestamp'] > 20:
                 arrayTmp.append(cmdObject)
-        
+
         for cmdDel in arrayTmp:
             self.arrayCmdNeedWait.remove(cmdDel)
 
-        
+
         # 检查命令接收情况
         if self.dicCmdWaiting and 'timestamp' in self.dicCmdWaiting:
             timestamp = self.dicCmdWaiting['timestamp']
             if nowTime - timestamp > 2:
                 Domoticz.Log('WARNING: Cmd waiting time out, clean. ' + str(self.dicCmdWaiting))
                 #超过2秒仍没收到消息，则代表设备不在线，清理所有未发送的命令
-                
+
                 if 'address' in self.dicCmdWaiting and self.dicCmdWaiting['address'] in self.dicLedCtrl:
                     ledCtrl = self.dicLedCtrl[self.dicCmdWaiting['address']]
                     ledCtrl.offline()
-                    
+
                     arrayTmp = []
                     for cmdObject in self.arrayCmdNeedWait:
                         if 'address' in cmdObject and cmdObject['address'] == str(ledCtrl.address):
@@ -466,19 +469,19 @@ class BasePlugin:
                         self.arrayCmdNeedWait.remove(cmdDel)
                 self.dicCmdWaiting = None
                 self.sendNextCmd()
-                    
-        
-        
-        
+
+
+
+
          # 最快每minRefreshDuration秒查询一次
         global minRefreshDuration
         if not self.conn.Connected() or time.time() - self.lastRefreshTimestamp < minRefreshDuration:
             return
         self.lastRefreshTimestamp = nowTime
-
+        Domoticz.Log('Query Light Status...')
         # 查询灯具状态
         for ledCtrl in self.dicLedCtrl.values():
-    
+
             array = ledCtrl.onQueryLight()
             cmdDuration = ledCtrl.onQueryGradientDuration()
 
@@ -486,18 +489,18 @@ class BasePlugin:
                 self.goingToSendCmd(address=ledCtrl.address, cmd=cmd, type='brightness', needWaiting=True)
             if cmdDuration:
                 self.goingToSendCmd(address=ledCtrl.address, cmd=cmdDuration, type='gradientDuration', needWaiting=True)
-        
-        # 检测在线情况
-        self.checkLedCtrlOnline()
 
-    # 截取一段收到的数据中的合法指令 
+        # 检测在线情况
+        # self.checkLedCtrlOnline()
+
+    # 截取一段收到的数据中的合法指令
     def getCmdClip(self, recv=None):
         if recv:
             self.recv += recv.upper()
         recvLen = len(self.recv)
         if recvLen > 200:
             self.recv = self.recv[-200:]
-        
+
         patternBrightness = re.compile(r'AE[0-F][0-F]D[1-8][0-F][0-F]EE')   # re.I 表示忽略大小写
         mBrightness = patternBrightness.search(self.recv)
         dicCmd = None
@@ -506,7 +509,7 @@ class BasePlugin:
             self.recv = self.recv[mBrightness.end():]
             dicCmd = {'cmd':mBrightness.group(), 'type':'brightness'}
 
-        elif recv and len(recv) == 2 and int(recv, 16) >= 1 and int(recv, 16) <= 15:
+        elif recv and len(recv) == 2 and int(recv, 16) >= 1 and int(recv, 16) <= 255:
             # 与之前的缓存无法组成合法亮度反馈指令，但是收到的数据符合渐变时间反馈特征
             self.recv = ''
             dicCmd = {'cmd':recv.upper(), 'type':'gradientDuration'}
@@ -514,45 +517,48 @@ class BasePlugin:
         if dicCmd:
             Domoticz.Log('RECEIVED CMD: ' + str(dicCmd))
         return dicCmd
-    
+
     # 发送命令检测控制器是否在线
     def checkLedCtrlOnline(self):
-        for LedCtrl in self.dicLedCtrl.values():
-            if not LedCtrl.online:
-                #AE00A1F2EE 查询所有控制器的第1路亮度信息 # TODO测试多个设备返回是怎样的 
-                cmd = 'AE00A1F2EE'
-                a_bytes = bytearray.fromhex(cmd)
-                self.conn.Send(Message=a_bytes) 
-                Domoticz.Log('TCP/IP MESSAGE SEND ' + cmd)
-                break
+        #AE01A1F2EE 查询0x01的第1路亮度
+        #AE02A1F2EE 查询0x01的第1路亮度
+        aSet = self.setAddress()
+        for address in aSet:
+            cmd = 'AE{0:0>2}A1F2EE'.format(address)
+            a_bytes = bytearray.fromhex(cmd)
+            self.conn.Send(Message=a_bytes)
+            Domoticz.Log('TCP/IP MESSAGE SEND ' + cmd)
 
-    def reloadFromDomoticz(self):
-        self.dicLedCtrl = {}
+
+    def setAddress(self):
         strListLedCtrl = Parameters["Mode1"]
         strListLedCtrl = strListLedCtrl.replace(',', '')
         strListLedCtrl = strListLedCtrl.replace('|', '')
         strListLedCtrl = strListLedCtrl.replace(' ', '')
         strListLedCtrl = strListLedCtrl.replace('0X', '0x')
         strListLedCtrl = strListLedCtrl.replace('X', '0x')
-        setAddress = set(strListLedCtrl.split('0x'))
-        setAddress2 = set([])
-        for tmp in setAddress:
-            if not tmp:
+        setAddressTmp = set(strListLedCtrl.split('0x'))
+        setAddress = set([])
+        for tmp in setAddressTmp:
+            if not tmp or len(tmp) < 1:
                 continue
-            setAddress2.add(tmp.upper())
-        for tmp2 in setAddress2:
-            if not tmp2:
-                continue
+            setAddress.add(tmp.upper())
 
-            self.dicLedCtrl[tmp2] = LedCtrl(tmp2)
-            self.dicLedCtrl[tmp2].conn = self.conn
+        return setAddress
+
+    def reloadFromDomoticz(self):
+        self.dicLedCtrl = {}
+        aSet = self.setAddress()
+        for tmp in aSet:
+            self.dicLedCtrl[tmp] = LedCtrl(tmp)
+            self.dicLedCtrl[tmp].conn = self.conn
 
         # 记录已有的unit
         setUnit = set([])
         # 待删除的device对应的unit
         setUnitDel = set([])
         # 所有的Unit集合
-        setUnitAll = set(range(1, 256)) 
+        setUnitAll = set(range(1, 256))
         # 将Device放入对应的控制器对象中，多余的device删除
         for unit in Devices:
             device = Devices[unit]
@@ -610,7 +616,7 @@ class BasePlugin:
             # Check if images are in database
             if "LJCountDown" not in Images:
                 Domoticz.Image("LJCountDown.zip").Create()
-            image = Images["LJCountDown"].ID       
+            image = Images["LJCountDown"].ID
             for lightIndex in setAll:
                 # 为每个待添加的设备序列号添加设备
                 # 首先分配unit
@@ -620,12 +626,12 @@ class BasePlugin:
                 minUnit = min(setAvariable)
                 setUnit.add(minUnit)
                 optionsCustom = {'LJAddress' : address, 'LJLightIndex' : str(lightIndex)}
-                
+
                 # 添加设备
                 if lightIndex == 0:
                     # 渐变时间
                     name = '控制器 0x{} 渐变时间'.format(address)
-                    
+
                     dicDeviceGradientDuration[minUnit] = Domoticz.Device(Name=name, Unit=minUnit, TypeName="Selector Switch", Switchtype=18, Image=image, Options=dict(optionsCustom, **optionsGradient))
                     dicDeviceGradientDuration[minUnit].Create()
                     Domoticz.Log('ADD DEVICE GRADIENT DURATION DIMMER:'+ descDevice(device=dicDeviceGradientDuration[minUnit], unit=minUnit))
@@ -638,8 +644,14 @@ class BasePlugin:
 
     # 添加命令到待发送列表
     def goingToSendCmd(self, address, cmd, type, needWaiting = False):
-        if not cmd or len(cmd) < 1 or not self.conn.Connected() or str(address) not in self.dicLedCtrl or not self.dicLedCtrl[str(address)].online:
-            # 未连接，或者控制器不在线的命令，不予发送
+        if not cmd or len(cmd) < 1 or str(address) not in self.dicLedCtrl:
+            return
+        if not self.conn.Connected():
+            Domoticz.Log('Not Connected, cmd {} ignored.'.format(cmd))
+            return
+
+        if not self.dicLedCtrl[str(address)].online:
+            Domoticz.Log('Device Offline, cmd {} ignored.'.format(cmd))
             return
         array = self.arrayCmdNeedWait if needWaiting else self.arrayCmd
         # 太多命令未发送，则忽略新命令
@@ -650,8 +662,8 @@ class BasePlugin:
         cmdObject = {'address':str(address), 'cmd' : cmd, 'type' : type, 'timestamp' : int(time.time())}
         array.append(cmdObject)
         self.sendNextCmd()
-            
-    # 发送命令   
+
+    # 发送命令
     def sendNextCmd(self):
         if self.dicCmdWaiting or not self.conn or not self.conn.Connected():
             return
@@ -694,7 +706,7 @@ global _plugin
 _plugin = BasePlugin()
 
 def UpdateDevice(Unit, nValue, sValue, TimedOut=0, updateAnyway=True):
-    # Make sure that the Domoticz device still exists (they can be deleted) before updating it  
+    # Make sure that the Domoticz device still exists (they can be deleted) before updating it
     if (Unit in Devices):
         if updateAnyway or (Devices[Unit].nValue != nValue) or (sValue >= 0 and Devices[Unit].sValue != sValue) or (Devices[Unit].TimedOut != TimedOut):
             Devices[Unit].Update(nValue=nValue, sValue=str(sValue), TimedOut=TimedOut)
