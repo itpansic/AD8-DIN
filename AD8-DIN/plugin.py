@@ -618,7 +618,7 @@ class BasePlugin:
                 Domoticz.Image("LJCountDown.zip").Create()
             image = Images["LJCountDown"].ID
             for lightIndex in setAll:
-                # 为每个待添加的设备序列号添加设备test
+                # 为每个待添加的设备序列号添加设备
                 # 首先分配unit
                 setAvariable = setUnitAll.difference(setUnit)
                 if not setAvariable or len(setAvariable) == 0:
