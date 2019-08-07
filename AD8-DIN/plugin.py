@@ -491,7 +491,7 @@ class BasePlugin:
                 self.goingToSendCmd(address=ledCtrl.address, cmd=cmdDuration, type='gradientDuration', needWaiting=True)
 
         # 检测在线情况
-        # self.checkLedCtrlOnline()
+        self.checkLedCtrlOnline()
 
     # 截取一段收到的数据中的合法指令
     def getCmdClip(self, recv=None):
@@ -525,6 +525,11 @@ class BasePlugin:
         aSet = self.setAddress()
         for address in aSet:
             cmd = 'AE{0:0>2}A1F2EE'.format(address)
+            if self.dicLedCtrl:
+                ledCtrl = self.dicLedCtrl[address]
+                if ledCtrl and ledCtrl.online:
+                    continue
+
             a_bytes = bytearray.fromhex(cmd)
             self.conn.Send(Message=a_bytes)
             Domoticz.Log('TCP/IP MESSAGE SEND ' + cmd)
