@@ -707,8 +707,8 @@ class Ad8din:
             self.sendNextCmd()
 
 
-global _plugin
-_plugin = Ad8din()
+global _pluginAd8din
+_pluginAd8din = Ad8din()
 
 def UpdateDevice(Unit, nValue, sValue, TimedOut=0, updateAnyway=True):
     # Make sure that the Domoticz device still exists (they can be deleted) before updating it
@@ -731,36 +731,36 @@ def descDevice(device, unit=None, nValue = None, sValue = None):
     return 'Unit: {}, Name: {}, nValue: {}, sValue: {}, TimedOut: {} Ctrl: 0x{:0>2}, LightIndex: {}'.format(unit, device.Name, n, s, device.TimedOut, address, lightIndex,)
 
 def onStart():
-    global _plugin
-    _plugin.onStart()
+    global _pluginAd8din
+    _pluginAd8din.onStart()
 
 def onStop():
-    global _plugin
-    _plugin.onStop()
+    global _pluginAd8din
+    _pluginAd8din.onStop()
 
 def onConnect(Connection, Status, Description):
-    global _plugin
-    _plugin.onConnect(Connection, Status, Description)
+    global _pluginAd8din
+    _pluginAd8din.onConnect(Connection, Status, Description)
 
 def onMessage(Connection, Data):
-    global _plugin
-    _plugin.onMessage(Connection, Data)
+    global _pluginAd8din
+    _pluginAd8din.onMessage(Connection, Data)
 
 def onCommand(Unit, Command, Level, Hue):
-    global _plugin
-    _plugin.onCommand(Unit, Command, Level, Hue)
+    global _pluginAd8din
+    _pluginAd8din.onCommand(Unit, Command, Level, Hue)
 
 def onNotification(Name, Subject, Text, Status, Priority, Sound, ImageFile):
-    global _plugin
-    _plugin.onNotification(Name, Subject, Text, Status, Priority, Sound, ImageFile)
+    global _pluginAd8din
+    _pluginAd8din.onNotification(Name, Subject, Text, Status, Priority, Sound, ImageFile)
 
 def onDisconnect(Connection):
-    global _plugin
-    _plugin.onDisconnect(Connection)
+    global _pluginAd8din
+    _pluginAd8din.onDisconnect(Connection)
 
 def onHeartbeat():
-    global _plugin
-    _plugin.onHeartbeat()
+    global _pluginAd8din
+    _pluginAd8din.onHeartbeat()
 
 # Generic helper functions
 def DumpConfigToLog():
