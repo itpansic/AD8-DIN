@@ -36,7 +36,8 @@
     </params>
 </plugin>
 """
-
+import queue
+import threading
 import time
 import re
 import Domoticz
@@ -59,6 +60,7 @@ class LedCtrl:
     isLastNeedWaitCmdGetGradientDuration = False
 
     def __init__(self, address):
+
         self.address = address
         self.dicDevice = {}
         self.dicDeviceGradientDuration = {}
@@ -233,6 +235,9 @@ class Ad8din:
     # 自上次读取一次新信息起经过了多久
     lastRefreshTimestamp = time.time()
 
+    messageQueue = None
+    messageThread = None
+
     conn = None
     # 待发送的需要等待回复的命令，成员格式为:{"address":"XX", "cmd":"XXXXXXX", "type": "brightness", "timestamp": timestamp}
     arrayCmdNeedWait = []
@@ -248,10 +253,16 @@ class Ad8din:
     recv = ''
 
     def __init__(self):
+        self.messageQueue = queue.Queue()
+        self.messageThread = threading.Thread(name="QueenSendThread", target=Ad8din.handleSend,
+                                              args=(self,))
         self.recv = ''
         return
 
     def onStart(self):
+
+        self.messageThread.start()
+
         # 取得设置的AD8-DIN的RS485地址列表
         if Parameters["Mode2"] == "Debug":
             Domoticz.Debugging(1)
@@ -273,6 +284,19 @@ class Ad8din:
 
     def onStop(self):
         Domoticz.Log("onStop called")
+        # signal queue thread to exit
+        self.messageQueue.put(None)
+        Domoticz.Log("Clearing message queue...")
+        self.messageQueue.join()
+
+        # Wait until queue thread has exited
+        Domoticz.Log("Threads still active: "+str(threading.active_count())+", should be 1.")
+        while (threading.active_count() > 1):
+            for thread in threading.enumerate():
+                if (thread.name != threading.current_thread().name):
+                    Domoticz.Log("'"+thread.name+"' is still running, waiting otherwise Domoticz will abort on plugin exit.")
+            time.sleep(1.0)
+        return
 
     def onConnect(self, Connection, Status, Description):
         if Status == 0:
@@ -305,6 +329,32 @@ class Ad8din:
             dicCmd = self.getCmdClip()
             i -= 1
 
+
+    def handleSend(self):
+        try:
+            Domoticz.Debug("Entering handleSend")
+            while True:
+                Message = self.messageQueue.get(block=True)
+                if Message is None:
+                    Domoticz.Debug("Exiting handleSend")
+                    self.messageQueue.task_done()
+                    break
+
+                if (Message["Type"] == "Send"):
+
+                    if (Message["Bytes"]):
+                        if not self.conn.Connected():
+                            Domoticz.Log('Not connected. Now connecting...')
+                            self.conn.Connect()
+                        else:
+                            time.sleep(0.1)
+                            self.conn.Send(Message=Message["Bytes"])
+                    else:
+                        Domoticz.Log("Send quest have no Bytes")
+
+                self.messageQueue.task_done()
+        except Exception as err:
+            Domoticz.Error("handleSend: "+str(err))
 
 
     # 处理收到的命令
@@ -345,10 +395,11 @@ class Ad8din:
 
 
             array = ledCtrl.onQueryLight()
-            cmdDuration = ledCtrl.onQueryGradientDuration()
-
             for cmd in array:
                 self.goingToSendCmd(address=address, cmd=cmd, type='brightness', needWaiting=True)
+
+            # 查询渐变时间会导致暗的灯闪烁
+            cmdDuration = ledCtrl.onQueryGradientDuration()
             self.goingToSendCmd(address=address, cmd=cmdDuration, type='gradientDuration', needWaiting=True)
 
         if cmd and cmdType and cmdWaiting and cmdTypeWaiting and addressWaiting and cmdType == cmdTypeWaiting:
@@ -483,12 +534,14 @@ class Ad8din:
         for ledCtrl in self.dicLedCtrl.values():
 
             array = ledCtrl.onQueryLight()
-            cmdDuration = ledCtrl.onQueryGradientDuration()
+            # 查询渐变时间会导致暗的灯闪烁，取消每次都查询
+            # cmdDuration = ledCtrl.onQueryGradientDuration()
+            # if cmdDuration:
+            #    self.goingToSendCmd(address=ledCtrl.address, cmd=cmdDuration, type='gradientDuration', needWaiting=True)
 
             for cmd in array:
                 self.goingToSendCmd(address=ledCtrl.address, cmd=cmd, type='brightness', needWaiting=True)
-            if cmdDuration:
-                self.goingToSendCmd(address=ledCtrl.address, cmd=cmdDuration, type='gradientDuration', needWaiting=True)
+
 
         # 检测在线情况
         self.checkLedCtrlOnline()
@@ -531,7 +584,7 @@ class Ad8din:
                     continue
 
             a_bytes = bytearray.fromhex(cmd)
-            self.conn.Send(Message=a_bytes)
+            self.messageQueue.put({"Type": "Send", "Bytes": a_bytes})
             Domoticz.Log('TCP/IP MESSAGE SEND ' + cmd)
 
 
@@ -699,7 +752,7 @@ class Ad8din:
             else:
                 ledCtrl.isLastNeedWaitCmdGetGradientDuration = False
         Domoticz.Log('TCP/IP MESSAGE SEND ' + cmd)
-        self.conn.Send(Message=a_bytes)
+        self.messageQueue.put({"Type": "Send", "Bytes": a_bytes})
 
         if needWait:
             self.dicCmdWaiting = cmdObject
