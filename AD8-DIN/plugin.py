@@ -768,7 +768,7 @@ def UpdateDevice(Unit, nValue, sValue, TimedOut=0, updateAnyway=True):
     if (Unit in Devices):
         if updateAnyway or (Devices[Unit].nValue != nValue) or (sValue >= 0 and Devices[Unit].sValue != sValue) or (Devices[Unit].TimedOut != TimedOut):
             Devices[Unit].Update(nValue=nValue, sValue=str(sValue), TimedOut=TimedOut)
-            Domoticz.Log("UPDATE DEVICE "+ descDevice(Devices[Unit], unit=Unit, nValue=nValue, sValue=sValue))
+            # Domoticz.Log("UPDATE DEVICE "+ descDevice(Devices[Unit], unit=Unit, nValue=nValue, sValue=sValue))
     return
 
 def logConnectStatus(conn):
