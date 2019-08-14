@@ -315,7 +315,7 @@ class Ad8din:
 
         recv = Data.hex().upper()
 
-        Domoticz.Log('TCP/IP MESSAGE RECEIVED ' + recv)
+        Domoticz.Debug('TCP/IP MESSAGE RECEIVED ' + recv)
 
         # 截取合法命令
         i = 16
@@ -359,7 +359,7 @@ class Ad8din:
 
     # 处理收到的命令
     def procDicCmd(self, dicCmd):
-        Domoticz.Log('procDicCmd:   ' + str(dicCmd))
+        Domoticz.Debug('procDicCmd:   ' + str(dicCmd))
         if not dicCmd: return
         cmdWaiting = None
         cmdTypeWaiting = None
@@ -483,7 +483,7 @@ class Ad8din:
         self.conn.Connect()
 
     def onHeartbeat(self):
-        Domoticz.Log('onHeartbeat Called ---------------------------------------')
+        Domoticz.Debug('onHeartbeat Called ---------------------------------------')
         # 如果没连接则尝试重新连接
         if not self.conn.Connected():
             Domoticz.Log('Not connected. Now connecting...')
@@ -529,7 +529,7 @@ class Ad8din:
         if not self.conn.Connected() or time.time() - self.lastRefreshTimestamp < minRefreshDuration:
             return
         self.lastRefreshTimestamp = nowTime
-        Domoticz.Log('Query Light Status...')
+        Domoticz.Debug('Query Light Status...')
         # 查询灯具状态
         for ledCtrl in self.dicLedCtrl.values():
 
@@ -568,7 +568,7 @@ class Ad8din:
             dicCmd = {'cmd':recv.upper(), 'type':'gradientDuration'}
 
         if dicCmd:
-            Domoticz.Log('RECEIVED CMD: ' + str(dicCmd))
+            Domoticz.Debug('RECEIVED CMD: ' + str(dicCmd))
         return dicCmd
 
     # 发送命令检测控制器是否在线
@@ -585,7 +585,7 @@ class Ad8din:
 
             a_bytes = bytearray.fromhex(cmd)
             self.messageQueue.put({"Type": "Send", "Bytes": a_bytes})
-            Domoticz.Log('TCP/IP MESSAGE SEND ' + cmd)
+            Domoticz.Debug('TCP/IP MESSAGE SEND ' + cmd)
 
 
     def setAddress(self):
@@ -751,7 +751,7 @@ class Ad8din:
                 ledCtrl.isLastNeedWaitCmdGetGradientDuration = True
             else:
                 ledCtrl.isLastNeedWaitCmdGetGradientDuration = False
-        Domoticz.Log('TCP/IP MESSAGE SEND ' + cmd)
+        Domoticz.Debug('TCP/IP MESSAGE SEND ' + cmd)
         self.messageQueue.put({"Type": "Send", "Bytes": a_bytes})
 
         if needWait:
@@ -768,7 +768,7 @@ def UpdateDevice(Unit, nValue, sValue, TimedOut=0, updateAnyway=True):
     if (Unit in Devices):
         if updateAnyway or (Devices[Unit].nValue != nValue) or (sValue >= 0 and Devices[Unit].sValue != sValue) or (Devices[Unit].TimedOut != TimedOut):
             Devices[Unit].Update(nValue=nValue, sValue=str(sValue), TimedOut=TimedOut)
-            # Domoticz.Log("UPDATE DEVICE "+ descDevice(Devices[Unit], unit=Unit, nValue=nValue, sValue=sValue))
+            Domoticz.Debug("UPDATE DEVICE "+ descDevice(Devices[Unit], unit=Unit, nValue=nValue, sValue=sValue))
     return
 
 def logConnectStatus(conn):
