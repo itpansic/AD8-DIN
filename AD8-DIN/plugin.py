@@ -766,9 +766,17 @@ _pluginAd8din = Ad8din()
 def UpdateDevice(Unit, nValue, sValue, TimedOut=0, updateAnyway=True):
     # Make sure that the Domoticz device still exists (they can be deleted) before updating it
     if (Unit in Devices):
-        if updateAnyway or (Devices[Unit].nValue != nValue) or (sValue >= 0 and Devices[Unit].sValue != sValue) or (Devices[Unit].TimedOut != TimedOut):
+        Domoticz.Log(
+            "old device info: nValue {}, sValue {}, timedOut {}".format(Devices[Unit].nValue, Devices[Unit].sValue,
+                                                                        Devices[Unit].TimedOut))
+        Domoticz.Log(
+            "new device info: nValue {}, sValue {}, timedOut {}".format(nValue, sValue,
+                                                                        TimedOut))
+        if updateAnyway or (Devices[Unit].nValue != nValue) or (Devices[Unit].sValue != sValue) or (Devices[Unit].TimedOut != TimedOut):
+
             Devices[Unit].Update(nValue=nValue, sValue=str(sValue), TimedOut=TimedOut)
-            Domoticz.Debug("UPDATE DEVICE "+ descDevice(Devices[Unit], unit=Unit, nValue=nValue, sValue=sValue))
+            Domoticz.Log("new device dump: {}".format(Devices[Unit]))
+            Domoticz.Log("UPDATE DEVICE "+ descDevice(Devices[Unit], unit=Unit, nValue=nValue, sValue=sValue))
     return
 
 def logConnectStatus(conn):
